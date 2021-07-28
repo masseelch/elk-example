@@ -25,7 +25,7 @@ func (h GroupHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if err := h.client.Group.DeleteOneID(id).Exec(r.Context()); err != nil {
 		switch err.(type) {
 		case *ent.NotFoundError:
-			msg := h.stripEntError(err)
+			msg := stripEntError(err)
 			l.Info(msg, zap.Int("id", id), zap.Error(err))
 			render.NotFound(w, r, "group not found")
 		default:
@@ -51,7 +51,7 @@ func (h PetHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if err := h.client.Pet.DeleteOneID(id).Exec(r.Context()); err != nil {
 		switch err.(type) {
 		case *ent.NotFoundError:
-			msg := h.stripEntError(err)
+			msg := stripEntError(err)
 			l.Info(msg, zap.Int("id", id), zap.Error(err))
 			render.NotFound(w, r, "pet not found")
 		default:
@@ -77,7 +77,7 @@ func (h UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if err := h.client.User.DeleteOneID(id).Exec(r.Context()); err != nil {
 		switch err.(type) {
 		case *ent.NotFoundError:
-			msg := h.stripEntError(err)
+			msg := stripEntError(err)
 			l.Info(msg, zap.Int("id", id), zap.Error(err))
 			render.NotFound(w, r, "user not found")
 		default:

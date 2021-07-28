@@ -55,9 +55,9 @@ func (h GroupHandler) Create(w http.ResponseWriter, r *http.Request) {
 	q := h.client.Group.Query().Where(group.ID(e.ID))
 	e, err = q.Only(r.Context())
 	if err != nil {
-		switch err.(type) {
-		case *ent.NotFoundError:
-			msg := h.stripEntError(err)
+		switch {
+		case ent.IsNotFound(err):
+			msg := stripEntError(err)
 			l.Info(msg, zap.Int("id", e.ID), zap.Error(err))
 			render.NotFound(w, r, msg)
 		default:
@@ -131,9 +131,9 @@ func (h PetHandler) Create(w http.ResponseWriter, r *http.Request) {
 	q := h.client.Pet.Query().Where(pet.ID(e.ID))
 	e, err = q.Only(r.Context())
 	if err != nil {
-		switch err.(type) {
-		case *ent.NotFoundError:
-			msg := h.stripEntError(err)
+		switch {
+		case ent.IsNotFound(err):
+			msg := stripEntError(err)
 			l.Info(msg, zap.Int("id", e.ID), zap.Error(err))
 			render.NotFound(w, r, msg)
 		default:
@@ -206,9 +206,9 @@ func (h UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	q := h.client.User.Query().Where(user.ID(e.ID))
 	e, err = q.Only(r.Context())
 	if err != nil {
-		switch err.(type) {
-		case *ent.NotFoundError:
-			msg := h.stripEntError(err)
+		switch {
+		case ent.IsNotFound(err):
+			msg := stripEntError(err)
 			l.Info(msg, zap.Int("id", e.ID), zap.Error(err))
 			render.NotFound(w, r, msg)
 		default:

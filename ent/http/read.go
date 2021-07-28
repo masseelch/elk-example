@@ -31,13 +31,13 @@ func (h *GroupHandler) Read(w http.ResponseWriter, r *http.Request) {
 	q := h.client.Group.Query().Where(group.ID(id))
 	e, err := q.Only(r.Context())
 	if err != nil {
-		switch err.(type) {
-		case *ent.NotFoundError:
-			msg := h.stripEntError(err)
+		switch {
+		case ent.IsNotFound(err):
+			msg := stripEntError(err)
 			l.Info(msg, zap.Int("id", id), zap.Error(err))
 			render.NotFound(w, r, msg)
-		case *ent.NotSingularError:
-			msg := h.stripEntError(err)
+		case ent.IsNotSingular(err):
+			msg := stripEntError(err)
 			l.Error(msg, zap.Int("id", id), zap.Error(err))
 			render.BadRequest(w, r, msg)
 		default:
@@ -74,13 +74,13 @@ func (h *PetHandler) Read(w http.ResponseWriter, r *http.Request) {
 	q := h.client.Pet.Query().Where(pet.ID(id))
 	e, err := q.Only(r.Context())
 	if err != nil {
-		switch err.(type) {
-		case *ent.NotFoundError:
-			msg := h.stripEntError(err)
+		switch {
+		case ent.IsNotFound(err):
+			msg := stripEntError(err)
 			l.Info(msg, zap.Int("id", id), zap.Error(err))
 			render.NotFound(w, r, msg)
-		case *ent.NotSingularError:
-			msg := h.stripEntError(err)
+		case ent.IsNotSingular(err):
+			msg := stripEntError(err)
 			l.Error(msg, zap.Int("id", id), zap.Error(err))
 			render.BadRequest(w, r, msg)
 		default:
@@ -119,13 +119,13 @@ func (h *UserHandler) Read(w http.ResponseWriter, r *http.Request) {
 	q.WithPets()
 	e, err := q.Only(r.Context())
 	if err != nil {
-		switch err.(type) {
-		case *ent.NotFoundError:
-			msg := h.stripEntError(err)
+		switch {
+		case ent.IsNotFound(err):
+			msg := stripEntError(err)
 			l.Info(msg, zap.Int("id", id), zap.Error(err))
 			render.NotFound(w, r, msg)
-		case *ent.NotSingularError:
-			msg := h.stripEntError(err)
+		case ent.IsNotSingular(err):
+			msg := stripEntError(err)
 			l.Error(msg, zap.Int("id", id), zap.Error(err))
 			render.BadRequest(w, r, msg)
 		default:

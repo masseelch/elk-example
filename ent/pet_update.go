@@ -7,6 +7,7 @@ import (
 	"elk-example/ent/pet"
 	"elk-example/ent/predicate"
 	"elk-example/ent/user"
+	"errors"
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
@@ -52,14 +53,6 @@ func (pu *PetUpdate) SetOwnerID(id int) *PetUpdate {
 	return pu
 }
 
-// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
-func (pu *PetUpdate) SetNillableOwnerID(id *int) *PetUpdate {
-	if id != nil {
-		pu = pu.SetOwnerID(*id)
-	}
-	return pu
-}
-
 // SetOwner sets the "owner" edge to the User entity.
 func (pu *PetUpdate) SetOwner(u *User) *PetUpdate {
 	return pu.SetOwnerID(u.ID)
@@ -83,12 +76,18 @@ func (pu *PetUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(pu.hooks) == 0 {
+		if err = pu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = pu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*PetMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = pu.check(); err != nil {
+				return 0, err
 			}
 			pu.mutation = mutation
 			affected, err = pu.sqlSave(ctx)
@@ -128,6 +127,19 @@ func (pu *PetUpdate) ExecX(ctx context.Context) {
 	if err := pu.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (pu *PetUpdate) check() error {
+	if v, ok := pu.mutation.Age(); ok {
+		if err := pet.AgeValidator(v); err != nil {
+			return &ValidationError{Name: "age", err: fmt.Errorf("ent: validator failed for field \"age\": %w", err)}
+		}
+	}
+	if _, ok := pu.mutation.OwnerID(); pu.mutation.OwnerCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"owner\"")
+	}
+	return nil
 }
 
 func (pu *PetUpdate) sqlSave(ctx context.Context) (n int, err error) {
@@ -248,14 +260,6 @@ func (puo *PetUpdateOne) SetOwnerID(id int) *PetUpdateOne {
 	return puo
 }
 
-// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
-func (puo *PetUpdateOne) SetNillableOwnerID(id *int) *PetUpdateOne {
-	if id != nil {
-		puo = puo.SetOwnerID(*id)
-	}
-	return puo
-}
-
 // SetOwner sets the "owner" edge to the User entity.
 func (puo *PetUpdateOne) SetOwner(u *User) *PetUpdateOne {
 	return puo.SetOwnerID(u.ID)
@@ -286,12 +290,18 @@ func (puo *PetUpdateOne) Save(ctx context.Context) (*Pet, error) {
 		node *Pet
 	)
 	if len(puo.hooks) == 0 {
+		if err = puo.check(); err != nil {
+			return nil, err
+		}
 		node, err = puo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*PetMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = puo.check(); err != nil {
+				return nil, err
 			}
 			puo.mutation = mutation
 			node, err = puo.sqlSave(ctx)
@@ -331,6 +341,19 @@ func (puo *PetUpdateOne) ExecX(ctx context.Context) {
 	if err := puo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (puo *PetUpdateOne) check() error {
+	if v, ok := puo.mutation.Age(); ok {
+		if err := pet.AgeValidator(v); err != nil {
+			return &ValidationError{Name: "age", err: fmt.Errorf("ent: validator failed for field \"age\": %w", err)}
+		}
+	}
+	if _, ok := puo.mutation.OwnerID(); puo.mutation.OwnerCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"owner\"")
+	}
+	return nil
 }
 
 func (puo *PetUpdateOne) sqlSave(ctx context.Context) (_node *Pet, err error) {

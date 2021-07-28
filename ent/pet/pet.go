@@ -51,3 +51,8 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// AgeValidator is a validator for the "age" field. It is called by the builders before save.
+	AgeValidator func(int) error
+)
