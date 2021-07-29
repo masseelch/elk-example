@@ -20,51 +20,6 @@ type Routes uint8
 func (rs Routes) has(r Routes) bool { return rs&r != 0 }
 
 const (
-	GroupCreate Routes = 1 << iota
-	GroupRead
-	GroupUpdate
-	GroupDelete
-	GroupList
-	GroupRoutes = 1<<iota - 1
-)
-
-// GroupHandler handles http crud operations on ent.Group.
-type GroupHandler struct {
-	handler
-
-	client    *ent.Client
-	log       *zap.Logger
-	validator *validator.Validate
-}
-
-func NewGroupHandler(c *ent.Client, l *zap.Logger, v *validator.Validate) *GroupHandler {
-	return &GroupHandler{
-		client:    c,
-		log:       l.With(zap.String("handler", "GroupHandler")),
-		validator: v,
-	}
-}
-
-// RegisterHandlers registers the generated handlers on the given chi router.
-func (h *GroupHandler) Mount(r chi.Router, rs Routes) {
-	if rs.has(GroupCreate) {
-		r.Post("/", h.Create)
-	}
-	if rs.has(GroupRead) {
-		r.Get("/{id}", h.Read)
-	}
-	if rs.has(GroupUpdate) {
-		r.Patch("/{id}", h.Update)
-	}
-	if rs.has(GroupDelete) {
-		r.Delete("/{id}", h.Delete)
-	}
-	if rs.has(GroupList) {
-		r.Get("/", h.List)
-	}
-}
-
-const (
 	PetCreate Routes = 1 << iota
 	PetRead
 	PetUpdate

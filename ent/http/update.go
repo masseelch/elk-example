@@ -4,7 +4,6 @@ package http
 
 import (
 	"elk-example/ent"
-	"elk-example/ent/group"
 	"elk-example/ent/pet"
 	"elk-example/ent/user"
 	"encoding/json"
@@ -17,85 +16,6 @@ import (
 	"github.com/masseelch/render"
 	"go.uber.org/zap"
 )
-
-// Payload of a ent.Group update request.
-type GroupUpdateRequest struct {
-}
-
-// Update updates a given ent.Group and saves the changes to the database.
-func (h GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
-	l := h.log.With(zap.String("method", "Update"))
-	// ID is URL parameter.
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
-		l.Error("error getting id from url parameter", zap.String("id", chi.URLParam(r, "id")), zap.Error(err))
-		render.BadRequest(w, r, "id must be an integer greater zero")
-		return
-	}
-	// Get the post data.
-	var d GroupUpdateRequest
-	if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
-		l.Error("error decoding json", zap.Error(err))
-		render.BadRequest(w, r, "invalid json string")
-		return
-	}
-	// Validate the data.
-	if err := h.validator.Struct(d); err != nil {
-		if err, ok := err.(*validator.InvalidValidationError); ok {
-			l.Error("error validating request data", zap.Error(err))
-			render.InternalServerError(w, r, nil)
-			return
-		}
-		l.Info("validation failed", zap.Error(err))
-		render.BadRequest(w, r, err)
-		return
-	}
-	// Save the data.
-	b := h.client.Group.UpdateOneID(id)
-	// TODO: what about slice fields that have custom marshallers?
-	// Store in database.
-	e, err := b.Save(r.Context())
-	if err != nil {
-		switch err.(type) {
-		case *ent.NotFoundError:
-			l.Info("group not found", zap.Int("id", id), zap.Error(err))
-			render.NotFound(w, r, "group not found")
-		case *ent.NotSingularError:
-			l.Error("duplicate entry for group", zap.Int("id", id), zap.Error(err))
-			render.BadRequest(w, r, "duplicate group entry with id "+strconv.Itoa(e.ID))
-		default:
-			l.Error("error saving group", zap.Int("id", id), zap.Error(err))
-			render.InternalServerError(w, r, nil)
-		}
-		return
-	}
-	// Reload entry.
-	q := h.client.Group.Query().Where(group.ID(e.ID))
-	e, err = q.Only(r.Context())
-	if err != nil {
-		switch {
-		case ent.IsNotFound(err):
-			msg := stripEntError(err)
-			l.Info(msg, zap.Int("id", e.ID), zap.Error(err))
-			render.NotFound(w, r, msg)
-		default:
-			l.Error("error fetching group from db", zap.Int("id", e.ID), zap.Error(err))
-			render.InternalServerError(w, r, nil)
-		}
-		return
-	}
-	j, err := sheriff.Marshal(&sheriff.Options{
-		IncludeEmptyTag: true,
-		Groups:          []string{"group"},
-	}, e)
-	if err != nil {
-		l.Error("serialization error", zap.Int("id", e.ID), zap.Error(err))
-		render.InternalServerError(w, r, nil)
-		return
-	}
-	l.Info("group rendered", zap.Int("id", e.ID))
-	render.OK(w, r, j)
-}
 
 // Payload of a ent.Pet update request.
 type PetUpdateRequest struct {

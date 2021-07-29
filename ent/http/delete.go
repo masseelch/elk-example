@@ -12,32 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Delete removes a ent.Group from the database.
-func (h GroupHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	l := h.log.With(zap.String("method", "Delete"))
-	// ID is URL parameter.
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
-		l.Error("error getting id from url parameter", zap.String("id", chi.URLParam(r, "id")), zap.Error(err))
-		render.BadRequest(w, r, "id must be an integer greater zero")
-		return
-	}
-	if err := h.client.Group.DeleteOneID(id).Exec(r.Context()); err != nil {
-		switch err.(type) {
-		case *ent.NotFoundError:
-			msg := stripEntError(err)
-			l.Info(msg, zap.Int("id", id), zap.Error(err))
-			render.NotFound(w, r, "group not found")
-		default:
-			l.Error("error deleting group from db", zap.Int("id", id), zap.Error(err))
-			render.InternalServerError(w, r, nil)
-		}
-		return
-	}
-	l.Info("group deleted", zap.Int("id", id))
-	render.NoContent(w)
-}
-
 // Delete removes a ent.Pet from the database.
 func (h PetHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	l := h.log.With(zap.String("method", "Delete"))

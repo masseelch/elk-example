@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"elk-example/ent/group"
 	"elk-example/ent/pet"
 	"elk-example/ent/user"
 	"errors"
@@ -31,9 +30,8 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		group.Table: group.ValidColumn,
-		pet.Table:   pet.ValidColumn,
-		user.Table:  user.ValidColumn,
+		pet.Table:  pet.ValidColumn,
+		user.Table: user.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {
